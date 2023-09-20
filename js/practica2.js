@@ -110,6 +110,8 @@ function loadScene(){
         4,20,0,  // 12
     ])
 
+    pinza.setAttribute('position',)
+
     brazo.add(antebrazo)
 
     brazo_completo.add(brazo)
