@@ -17,6 +17,7 @@ let renderer, scene, camera
 
 //Globales propias
 let robot;
+let base, brazo, antebrazo, mano, pinza_L, pinza_R;
 let cameraControls;
 let stats
 let effectController
@@ -78,13 +79,11 @@ function loadScene(){
     scene.add(suelo)
 
     //Base del robot
-    const base_robot = new THREE.Mesh( new THREE.CylinderGeometry(50,50,15, 50), default_material)
-    robot.add(base_robot)
+    base = new THREE.Mesh( new THREE.CylinderGeometry(50,50,15, 50), default_material)
+    robot.add(base)
 
-    //Brazo Completo
-    const brazo_completo = new THREE.Object3D()
     //Brazo
-    const brazo = new THREE.Object3D()
+    brazo = new THREE.Object3D()
     const brazo_base = new THREE.Mesh( new THREE.CylinderGeometry(20,20,18, 50), default_material)
     brazo_base.rotateX(-Math.PI/2)
     brazo.add(brazo_base)
@@ -98,7 +97,8 @@ function loadScene(){
     brazo.add(brazo_fin)
 
     //Antebrazo
-    const antebrazo = new THREE.Object3D()
+    antebrazo = new THREE.Object3D()
+
     antebrazo.position.set(0,120,0)
 
     const antebrazo_base = new THREE.Mesh( new THREE.CylinderGeometry(22,22, 6, 30), default_material)
@@ -118,14 +118,14 @@ function loadScene(){
     antebrazo_col4.position.set(-separation,40,-separation)
     antebrazo.add(antebrazo_col4)
 
-    const antebrazo_fin_container = new THREE.Object3D()
+    mano = new THREE.Object3D()
 
+    //Mano
     const antebrazo_fin = new THREE.Mesh( new THREE.CylinderGeometry(15,15, 40, 30), default_material)
     antebrazo_fin.rotateX(-Math.PI/2)
-    antebrazo_fin_container.position.set(0,80,0)
-    antebrazo_fin_container.add(antebrazo_fin)
-    antebrazo.add(antebrazo_fin_container)
-
+    mano.position.set(0,80,0)
+    mano.add(antebrazo_fin)
+    
     //Pinzas
     const geometry_R = new THREE.BufferGeometry()
     const positions_R = new Float32Array([
@@ -172,23 +172,27 @@ function loadScene(){
     geometry_R.setAttribute('position', new THREE.BufferAttribute(positions_R, 3))
     geometry_R.setIndex(indexes)
     geometry_L.setAttribute('position', new THREE.BufferAttribute(positions_L, 3))
+
     geometry_L.setIndex(indexes)
-    const pinza_R = new THREE.Mesh(geometry_R, default_material)
-    const pinza_L = new THREE.Mesh(geometry_L, default_material)
+    pinza_R = new THREE.Mesh(geometry_R, default_material)
+    pinza_L = new THREE.Mesh(geometry_L, default_material)
     //geometry_R.computeVertexNormals()
     //geometry_L.computeVertexNormals()
     pinza_R.rotateY(Math.PI/2)
     pinza_L.rotateY(Math.PI/2)
     pinza_R.position.set(5,-10,10)
     pinza_L.position.set(5,-10,-10)
-    antebrazo_fin_container.add(pinza_R)
-    antebrazo_fin_container.add(pinza_L)
+
+
+    mano.add(pinza_R)
+    mano.add(pinza_L)
+
+    antebrazo.add(mano)
 
     brazo.add(antebrazo)
 
-    brazo_completo.add(brazo)
+    base.add(brazo)
 
-    robot.add(brazo)
     robot.add(new THREE.AxesHelper(50))
 
     robot.position.set(0,7.5,0)
@@ -203,7 +207,7 @@ function setupGUI() {
         giro_antebrazo_y: 0, 
         giro_antebrazo_z: 0, 
         giro_pinza: 0, 
-        separacion_pinza: 0,
+        separacion_pinza: 20,
         alambres: false
 
     }
@@ -212,11 +216,11 @@ function setupGUI() {
 
     const h = gui.addFolder("Controles del Robot")
     h.add(effectController, "giro_base", -180.0, 180.0, 0.5).name("Giro Base")//.listen()
-    h.add(effectController, "giro_brazo", -180.0, 180.0, 0.5).name("Giro Brazo")
+    h.add(effectController, "giro_brazo", -45.0, 45.0, 0.5).name("Giro Brazo")
     h.add(effectController, "giro_antebrazo_y", -180.0, 180.0, 0.5).name("Giro Antebrazo Y")
-    h.add(effectController, "giro_antebrazo_z", -180.0, 180.0, 0.5).name("Giro Antebrazo Z")
-    h.add(effectController, "giro_pinza", 0, 100, 1).name("Giro Pinza")
-    h.add(effectController, "separacion_pinza", 0, 100, 1).name("Separación Pinza")
+    h.add(effectController, "giro_antebrazo_z", -90.0, 90.0, 0.5).name("Giro Antebrazo Z")
+    h.add(effectController, "giro_pinza", 0.0, 180.0, 0.5).name("Giro Pinza")
+    h.add(effectController, "separacion_pinza", 4, 30, 1).name("Separación Pinza")
     
 }
 
@@ -227,8 +231,16 @@ function updateAspectRatio(){
     camera.updateProjectionMatrix()
 }
 
-function update(){
+function update(delta){
     
+    base.rotation.y = effectController.giro_base / 180 * Math.PI
+    brazo.rotation.z = effectController.giro_brazo / 180 * Math.PI
+    antebrazo.rotation.y = effectController.giro_antebrazo_y / 180 * Math.PI
+    antebrazo.rotation.z = effectController.giro_antebrazo_z / 180 * Math.PI
+    mano.rotation.z = effectController.giro_pinza / 180 * Math.PI
+    pinza_R.position.set(5,-10, -effectController.separacion_pinza/2)
+    pinza_L.position.set(5,-10, effectController.separacion_pinza/2)
+
 }
 
 function render(){
