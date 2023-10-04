@@ -87,7 +87,7 @@ function update(){
     esferaCubo.rotateY(angulo);
 }
 
-function render(){
+function render(time){
     requestAnimationFrame(render)
     update()
     renderer.render(scene, camera)

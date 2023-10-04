@@ -7,6 +7,9 @@
 import * as THREE from '../lib/three.module.js'
 import {GLTFLoader} from "../lib/GLTFLoader.module.js"
 import {OrbitControls} from '../lib/OrbitControls.module.js'
+import {TWEEN} from "../lib/tween.module.min.js"
+import Stats from '../lib/stats.module.js'
+import {GUI} from "../lib/lil-gui.module.min.js"
 
 
 // Variablesde consenso. SIEMPRE necesarias
@@ -15,6 +18,8 @@ let renderer, scene, camera
 //Globales propias
 let robot;
 let cameraControls;
+let stats
+let effectController
 
 //Top camera
 let topCamera
@@ -24,6 +29,7 @@ const L = 5
 
 init();
 loadScene();
+setupGUI()
 render();
 
 function init(){
@@ -45,10 +51,16 @@ function init(){
     camera.position.set(150, 200, 150)
     camera.lookAt(0, 100, 0)
 
-    topCamera = new THREE.OrthographicCamera(-100,100,100,-100,-100,1000)
+    topCamera = new THREE.OrthographicCamera(-50,50,50,-50,100,800)
     topCamera.position.set(0, 500, 0)
     topCamera.up.set(1,0,0)
     topCamera.lookAt(0,100,0)
+
+    //Monitor
+
+    //stats = new Stats()
+    //stats.setMode(0)
+    //document.getElementById('container').appendChild(stats.domElement)
 
     //Eventos
     window.addEventListener('resize', updateAspectRatio)
@@ -56,7 +68,7 @@ function init(){
 
 function loadScene(){
     //const default_material = new THREE.MeshBasicMaterial({color: new THREE.Color(1,0,0), wireframe: true})
-    const default_material = new THREE.MeshNormalMaterial()
+    const default_material = new THREE.MeshNormalMaterial({wireframe:false, flatShading:true})
     const green_material = new THREE.MeshBasicMaterial({color: new THREE.Color(0,1,0), wireframe: true})
     robot = new THREE.Object3D()
 
@@ -117,36 +129,36 @@ function loadScene(){
     //Pinzas
     const geometry_R = new THREE.BufferGeometry()
     const positions_R = new Float32Array([
-        0,0,0,  // 0
-        0,0,19, // 1
-        2,2,38, // 2
-        2,18,38, // 3
-        0,20,19, // 4
-        0,20,0,  // 5
+        -2,0,0,  // 0
+        -2,0,19, // 1
+        0,2,38, // 2
+        0,18,38, // 3
+        -2,20,19, // 4
+        -2,20,0,  // 5
 
-        4,0,0,  // 6
-        4,0,19, // 7
-        4,2,38, // 8
-        4,18,38, // 9
-        4,20,19, // 10
-        4,20,0,  // 11
+        2,0,0,  // 6
+        2,0,19, // 7
+        2,2,38, // 8
+        2,18,38, // 9
+        2,20,19, // 10
+        2,20,0,  // 11
     ])
 
     const geometry_L = new THREE.BufferGeometry()
     const positions_L = new Float32Array([
-        0,0,0,  // 0
-        0,0,19, // 1
-        0,2,38, // 2
-        0,18,38, // 3
-        0,20,19, // 4
-        0,20,0,  // 5
+        -2,0,0,  // 0
+        -2,0,19, // 1
+        -2,2,38, // 2
+        -2,18,38, // 3
+        -2,20,19, // 4
+        -2,20,0,  // 5
 
-        4,0,0,  // 6
-        4,0,19, // 7
-        2,2,38, // 8
-        2,18,38, // 9
-        4,20,19, // 10
-        4,20,0,  // 11
+        2,0,0,  // 6
+        2,0,19, // 7
+        0,2,38, // 8
+        0,18,38, // 9
+        2,20,19, // 10
+        2,20,0,  // 11
     ])
 
     const indexes = [0,1,4, 0,4,5, 1,2,3, 1,3,4,
@@ -163,8 +175,8 @@ function loadScene(){
     geometry_L.setIndex(indexes)
     const pinza_R = new THREE.Mesh(geometry_R, default_material)
     const pinza_L = new THREE.Mesh(geometry_L, default_material)
-    geometry_R.computeVertexNormals()
-    geometry_L.computeVertexNormals()
+    //geometry_R.computeVertexNormals()
+    //geometry_L.computeVertexNormals()
     pinza_R.rotateY(Math.PI/2)
     pinza_L.rotateY(Math.PI/2)
     pinza_R.position.set(5,-10,10)
@@ -184,6 +196,30 @@ function loadScene(){
 
 }
 
+function setupGUI() {
+    effectController = {
+        giro_base: 0, 
+        giro_brazo: 0, 
+        giro_antebrazo_y: 0, 
+        giro_antebrazo_z: 0, 
+        giro_pinza: 0, 
+        separacion_pinza: 0,
+        alambres: false
+
+    }
+
+    const gui = new GUI()
+
+    const h = gui.addFolder("Controles del Robot")
+    h.add(effectController, "giro_base", -180.0, 180.0, 0.5).name("Giro Base")//.listen()
+    h.add(effectController, "giro_brazo", -180.0, 180.0, 0.5).name("Giro Brazo")
+    h.add(effectController, "giro_antebrazo_y", -180.0, 180.0, 0.5).name("Giro Antebrazo Y")
+    h.add(effectController, "giro_antebrazo_z", -180.0, 180.0, 0.5).name("Giro Antebrazo Z")
+    h.add(effectController, "giro_pinza", 0, 100, 1).name("Giro Pinza")
+    h.add(effectController, "separacion_pinza", 0, 100, 1).name("Separación Pinza")
+    
+}
+
 function updateAspectRatio(){
     renderer.setSize(window.innerWidth, window.innerHeight)
     const ar = window.innerWidth/window.innerHeight
@@ -192,7 +228,7 @@ function updateAspectRatio(){
 }
 
 function update(){
-    //robot.rotateY(0.01)
+    
 }
 
 function render(){
