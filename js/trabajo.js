@@ -47,7 +47,7 @@ let effectController
 let instanciables = []
 let linear_misil_time = 0
 let linear_misil_velocity = 1000
-let linear_misil_interval_time = 1
+let linear_misil_interval_time = 0.1
 
 //Keyboard
 let keypress_W = false
@@ -267,7 +267,9 @@ function update(){
 
     linear_misil_time+= delta
     if(linear_misil_time>linear_misil_interval_time){
-        createLinealShoot(Math.random()*Math.PI*2, Math.random()*Math.PI*2, linear_misil_velocity)
+        //createLinealShoot(Math.random()*Math.PI*2, Math.random()*Math.PI*2, linear_misil_velocity)
+        //console.log(ship.rotation)
+        createLinealShoot(ship.rotation, linear_misil_velocity)
         linear_misil_time=0
     }
 }
@@ -288,21 +290,26 @@ function render(){
 // Videogame objects
 
 class LinearShoot {
-    constructor(ry,rz,velocity){
-        this.ry = ry
-        this.rz = rz
+    constructor(eulers,velocity){
+        this.eulers = eulers
         this.velocity = velocity
 
-        this.geometry = new THREE.Mesh(new THREE.SphereGeometry(50,50,planet_wires,planet_wires), new THREE.MeshBasicMaterial())
-        this.geometry.rotateY(ry)
-        this.geometry.rotateZ(ry)
-        scene.add(this.geometry)
+        //this.geometry = new THREE.Mesh(new THREE.SphereGeometry(50,50,planet_wires,planet_wires), new THREE.MeshBasicMaterial())
+        this.center = new THREE.Object3D()
+        this.geometry = new THREE.Mesh(new THREE.BoxGeometry(50,50,50), new THREE.MeshBasicMaterial())
+        this.center.add(this.geometry)
+        this.center.setRotationFromEuler(this.eulers)
+        scene.add(this.center)
         this.position = radio_planeta
     }
 
     update(delta){
-        this.position+=this.velocity*delta
-        this.geometry.position.set(this.position,0,0)
+        
+        /*
+        this.geometry.scale.x = (this.position/ship_distance)*10
+        this.geometry.scale.y = (this.position/ship_distance)*10
+        this.geometry.scale.z = (this.position/ship_distance)*10
+        */
 
         if(this.position > ship_distance + camera_distance){
             
@@ -310,14 +317,21 @@ class LinearShoot {
 
             if (indiceObjetoAEliminar !== -1) {
                 instanciables.splice(indiceObjetoAEliminar, 1);
-            }           
-                scene.remove( this.geometry )
+            }        
+            this.center.remove(this.geometry)   
+            scene.remove( this.geometry )
+            scene.remove( this.center )
+
+        }
+        else{
+            this.position+=this.velocity*delta
+            this.geometry.position.set(this.position,0,0)
         }
     }
 }
 
-function createLinealShoot(ry,rz,velocity){
+function createLinealShoot(eulers, velocity){
 
-    const shot = new LinearShoot(ry,rz,velocity)
+    const shot = new LinearShoot(eulers,velocity)
     instanciables.push(shot)
 }
