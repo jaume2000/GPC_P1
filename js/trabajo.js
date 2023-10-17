@@ -46,7 +46,7 @@ let effectController
 // Lista de misiles
 let instanciables = []
 let linear_misil_time = 0
-let linear_misil_velocity = 1000
+let linear_misil_velocity = 10000
 let linear_misil_interval_time = 0.1
 
 //Keyboard
