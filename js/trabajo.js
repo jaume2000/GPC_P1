@@ -11,8 +11,11 @@ import {TWEEN} from "../lib/tween.module.min.js"
 import Stats from '../lib/stats.module.js'
 import {GUI} from "../lib/lil-gui.module.min.js"
 
+import LinearMisil from './GameObjects/LinearMisil.js'
+import LaserSatelit from './GameObjects/LaserSatelit.js'
 
-// Variables de escena
+
+// Constantes de escena
 
 let radio_planeta = 1000
 let earth_rotation = Math.PI/40
@@ -21,7 +24,6 @@ let moon_radius = 200
 let moon_angular_velocity = Math.PI/30
 let moon_rotation_velocity = 0
 let planet_wires = 40
-let orbit_wires = 40
 
 let ship_distance = 10000
 let ship_eulers = [0,0,0]
@@ -32,16 +34,14 @@ let velocity = 50
 let camera_distance = [200,20,0]
 
 
-// Variablesde consenso. SIEMPRE necesarias
+// Variables de consenso. SIEMPRE necesarias
 let renderer, scene, camera
 let clock
 
-//Globales propias
+//Objetos estáticos de la escena
 let planet, moon, moon_geometry
 let ship, ship_end
-let cannons
-let stats
-let effectController
+let canon
 
 // Lista de misiles
 let instanciables = []
@@ -69,6 +69,7 @@ function init(){
     renderer = new THREE.WebGLRenderer()
     renderer.autoClear = false
     renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.updateShadowMap.enabled = true
     document.getElementById('container').appendChild(renderer.domElement) //Añadimos el canvas de THREE JS al DOM.
 
     //Escena
@@ -94,6 +95,19 @@ function init(){
 }
 
 function loadScene(){
+
+
+    function createPlanetMaterial(route) {
+
+        var earthTexture = THREE.ImageUtils.loadTexture(route);
+    
+        var earthMaterial = new THREE.MeshBasicMaterial();
+        earthMaterial.map = earthTexture;
+    
+        return earthMaterial;
+    }
+
+    const light = new THREE.DirectionalLight(0xffffff, 10)
 
     const loader = new THREE.TextureLoader();
     const texture = loader.load(
@@ -173,21 +187,11 @@ function loadScene(){
     ship.setRotationFromEuler(new THREE.Euler( ...ship_eulers, 'XYZ' ))
     ship_end.setRotationFromEuler(new THREE.Euler(ship_rotation,0,0))
     
-    
+    new LaserSatelit(ship, linear_misil_velocity, scene, instanciables, ship_distance, camera_distance, radio_planeta)
 
     scene.add(ship)
     
 
-}
-
-function createPlanetMaterial(route) {
-
-    var earthTexture = THREE.ImageUtils.loadTexture(route);
-
-    var earthMaterial = new THREE.MeshBasicMaterial();
-    earthMaterial.map = earthTexture;
-
-    return earthMaterial;
 }
 
 function updateAspectRatio(){
@@ -269,7 +273,7 @@ function update(){
     if(linear_misil_time>linear_misil_interval_time){
         //createLinealShoot(Math.random()*Math.PI*2, Math.random()*Math.PI*2, linear_misil_velocity)
         //console.log(ship.rotation)
-        createLinealShoot(ship.rotation, linear_misil_velocity)
+        //new LinearMisil(ship, linear_misil_velocity, scene, instanciables, ship_distance, camera_distance, radio_planeta)
         linear_misil_time=0
     }
 }
@@ -289,49 +293,3 @@ function render(){
 
 // Videogame objects
 
-class LinearShoot {
-    constructor(eulers,velocity){
-        this.eulers = eulers
-        this.velocity = velocity
-
-        //this.geometry = new THREE.Mesh(new THREE.SphereGeometry(50,50,planet_wires,planet_wires), new THREE.MeshBasicMaterial())
-        this.center = new THREE.Object3D()
-        this.geometry = new THREE.Mesh(new THREE.BoxGeometry(50,50,50), new THREE.MeshBasicMaterial())
-        this.center.add(this.geometry)
-        this.center.setRotationFromEuler(this.eulers)
-        scene.add(this.center)
-        this.position = radio_planeta
-    }
-
-    update(delta){
-        
-        /*
-        this.geometry.scale.x = (this.position/ship_distance)*10
-        this.geometry.scale.y = (this.position/ship_distance)*10
-        this.geometry.scale.z = (this.position/ship_distance)*10
-        */
-
-        if(this.position > ship_distance + camera_distance){
-            
-            const indiceObjetoAEliminar = instanciables.indexOf(this);
-
-            if (indiceObjetoAEliminar !== -1) {
-                instanciables.splice(indiceObjetoAEliminar, 1);
-            }        
-            this.center.remove(this.geometry)   
-            scene.remove( this.geometry )
-            scene.remove( this.center )
-
-        }
-        else{
-            this.position+=this.velocity*delta
-            this.geometry.position.set(this.position,0,0)
-        }
-    }
-}
-
-function createLinealShoot(eulers, velocity){
-
-    const shot = new LinearShoot(eulers,velocity)
-    instanciables.push(shot)
-}
