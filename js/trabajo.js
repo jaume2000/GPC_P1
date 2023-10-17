@@ -13,6 +13,7 @@ import {GUI} from "../lib/lil-gui.module.min.js"
 
 import LinearMisil from './GameObjects/LinearMisil.js'
 import LaserSatelit from './GameObjects/LaserSatelit.js'
+import StaticLaser from './GameObjects/StaticLaser.js'
 
 
 // Constantes de escena
@@ -29,7 +30,8 @@ let ship_distance = 10000
 let ship_eulers = [0,0,0]
 let ship_euler_velocity = [0,0]
 let ship_rotation = 0
-let velocity = 50
+let ship_acceleration = 50
+let ship_max_velocity = 0.01
 
 let camera_distance = [200,20,0]
 
@@ -48,6 +50,8 @@ let instanciables = []
 let linear_misil_time = 0
 let linear_misil_velocity = 10000
 let linear_misil_interval_time = 0.1
+let static_laser_time = 0
+let static_laser_interval_time = 5
 
 //Keyboard
 let keypress_W = false
@@ -124,12 +128,12 @@ function loadScene(){
     const default_material = new THREE.MeshNormalMaterial({wireframe:false, flatShading:true})
     const green_material = new THREE.MeshBasicMaterial({color: new THREE.Color(0,1,0), wireframe: true})
 
-    let earthMaterial = createPlanetMaterial("/images/2k_earth_daymap.jpg");
+    let earthMaterial = createPlanetMaterial("/images/2k_sun.jpg");
     planet = new THREE.Mesh(new THREE.SphereGeometry(radio_planeta, planet_wires, planet_wires), earthMaterial)
     planet.rotateX(21/180*Math.PI)
     scene.add(planet)
 
-    let moonMaterial = createPlanetMaterial("/images/2k_moon.jpg");
+    let moonMaterial = createPlanetMaterial("/images/2k_earth_daymap.jpg");
     moon = new THREE.Object3D()
     moon_geometry = new THREE.Mesh(new THREE.SphereGeometry(moon_radius, planet_wires, planet_wires), moonMaterial)
     moon_geometry.translateX(-ship_distance)
@@ -187,7 +191,7 @@ function loadScene(){
     ship.setRotationFromEuler(new THREE.Euler( ...ship_eulers, 'XYZ' ))
     ship_end.setRotationFromEuler(new THREE.Euler(ship_rotation,0,0))
     
-    new LaserSatelit(ship, linear_misil_velocity, scene, instanciables, ship_distance, camera_distance, radio_planeta)
+    //new LaserSatelit(ship, linear_misil_velocity, scene, instanciables, ship_distance, camera_distance, radio_planeta)
 
     scene.add(ship)
     
@@ -241,8 +245,8 @@ function update(){
     
 
     if (keypress_W){
-        ship_euler_velocity[1] += Math.cos(ship_rotation)*velocity/ship_distance*delta
-        ship_euler_velocity[0] += -Math.sin(ship_rotation)*velocity/ship_distance*delta
+        ship_euler_velocity[1] = Math.min(Math.max((ship_euler_velocity[1] + Math.cos(ship_rotation)*ship_acceleration/ship_distance*delta), -ship_max_velocity), ship_max_velocity)
+        ship_euler_velocity[0] = Math.min(Math.max((ship_euler_velocity[0] -Math.sin(ship_rotation)*ship_acceleration/ship_distance*delta), -ship_max_velocity), ship_max_velocity)
     }
     if (keypress_S){
         ship_euler_velocity[1] -= 0.8*ship_euler_velocity[1]*delta
@@ -270,11 +274,19 @@ function update(){
 
 
     linear_misil_time+= delta
+    static_laser_time+= delta
     if(linear_misil_time>linear_misil_interval_time){
         //createLinealShoot(Math.random()*Math.PI*2, Math.random()*Math.PI*2, linear_misil_velocity)
         //console.log(ship.rotation)
-        //new LinearMisil(ship, linear_misil_velocity, scene, instanciables, ship_distance, camera_distance, radio_planeta)
+        new LinearMisil(new THREE.Euler(Math.random()*Math.PI*2,Math.random()*Math.PI*2,Math.random()*Math.PI*2), linear_misil_velocity, scene, instanciables, ship_distance, camera_distance, radio_planeta)
         linear_misil_time=0
+    }
+
+    if(static_laser_time>static_laser_interval_time){
+        //createLinealShoot(Math.random()*Math.PI*2, Math.random()*Math.PI*2, linear_misil_velocity)
+        //console.log(ship.rotation)
+        new StaticLaser(ship, scene, instanciables, ship_distance, camera_distance, radio_planeta)
+        static_laser_time=0
     }
 }
 
