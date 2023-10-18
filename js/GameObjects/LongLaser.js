@@ -1,6 +1,6 @@
 import * as THREE from '../../lib/three.module.js'
 
-export default class StaticLaser {
+export default class LongLaser {
 
     static first_phase_time = 0 //Invisibles
     static second_phase_time = 3    //Van apareciendo
@@ -22,6 +22,7 @@ export default class StaticLaser {
 
         this.laser = new THREE.Mesh(new THREE.CylinderGeometry(1000, 10, this.ship_distance*2, 10, 10), this.laser_material)
         
+        this.geometry = new THREE.Object3D()
         this.laser.rotateZ(-Math.PI/2)
         this.center.add(this.laser)
         this.center.setRotationFromEuler( eulers )
@@ -61,8 +62,8 @@ export default class StaticLaser {
             if (indiceObjetoAEliminar !== -1) {
                 this.instanciables.splice(indiceObjetoAEliminar, 1);
             }        
-            this.center.remove(this.laser)   
-            this.scene.remove( this.laser )
+            this.center.remove(this.geometry)   
+            this.scene.remove( this.geometry )
             this.scene.remove( this.center )
         }
     

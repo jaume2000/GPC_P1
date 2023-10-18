@@ -11,7 +11,8 @@ export default class LinearMisil {
 
         //this.geometry = new THREE.Mesh(new THREE.SphereGeometry(50,50,planet_wires,planet_wires), new THREE.MeshBasicMaterial())
         this.center = new THREE.Object3D()
-        this.geometry = new THREE.Mesh(new THREE.BoxGeometry(50,50,50), new THREE.MeshBasicMaterial())
+        this.material = new THREE.MeshBasicMaterial({color: 0xffffff, transparent: true, opacity:1})
+        this.geometry = new THREE.Mesh(new THREE.BoxGeometry(50,50,50), this.material)
         this.center.add(this.geometry)
         this.center.setRotationFromEuler(eulers)
         this.scene.add(this.center)
@@ -40,10 +41,17 @@ export default class LinearMisil {
             this.scene.remove( this.geometry )
             this.scene.remove( this.center )
 
+            
+
         }
         else{
             this.position+=this.velocity*delta
             this.geometry.position.set(this.position,0,0)
+            this.geometry.scale.x = this.position/25
+
+            if(this.position > this.ship_distance*0.75){
+                this.material.opacity = (this.ship_distance + this.camera_distance - this.position) / ( this.ship_distance*0.25 +this.camera_distance)
+            }
         }
     }
 }

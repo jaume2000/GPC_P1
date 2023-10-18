@@ -5,7 +5,7 @@ export default class LaserSatelit {
     static first_phase_time = 10
     static second_phase_time = 20
 
-    constructor(ship,velocity, scene, instanciables, ship_distance, camera_distance, radio_planeta){
+    constructor(init_eulers, ship,velocity, scene, instanciables, ship_distance, camera_distance, radio_planeta){
         this.velocity = velocity
         this.scene = scene
         this.instanciables = instanciables
@@ -19,14 +19,14 @@ export default class LaserSatelit {
         //this.geometry = new THREE.Mesh(new THREE.TorusGeometry(200, 100, 10, 30), new THREE.MeshNormalMaterial())
         this.geometry = new THREE.Object3D()
 
-        this.laser_material = new THREE.MeshBasicMaterial({color: 0xffffff, transparent: true, opacity: 0})
+        this.laser_material = new THREE.MeshBasicMaterial({color: 0xffffff, transparent: true, opacity: 0, side: THREE.DoubleSide})
 
         this.laser = new THREE.Mesh(new THREE.CylinderGeometry(200, 10, ship_distance, 10, 10), this.laser_material)
         this.laser.translateZ(this.ship_distance/2)
         this.laser.rotateX(Math.PI/2)
         this.geometry.add(this.laser)
         this.center.add(this.geometry)
-        this.center.setRotationFromEuler( new THREE.Euler(0, this.ship.rotation.y - Math.PI, 0))
+        this.center.setRotationFromEuler( init_eulers )
         
         this.scene.add(this.center)
         this.position = radio_planeta//*2
