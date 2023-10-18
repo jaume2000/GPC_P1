@@ -208,19 +208,28 @@ function setupGUI() {
         giro_antebrazo_z: 0, 
         giro_pinza: 0, 
         separacion_pinza: 20,
-        alambres: false
+        alambres: false,
+        animacion: ()=>{
+        new TWEEN.Tween(effectController)
+        .to({
+            giro_base: [100, -100]
+        }, 1000)
+        .interpolation( TWEEN.Interpolation.Bezier )
+        .start()
+        }
 
     }
 
     const gui = new GUI()
 
     const h = gui.addFolder("Controles del Robot")
-    h.add(effectController, "giro_base", -180.0, 180.0, 0.5).name("Giro Base")//.listen()
+    h.add(effectController, "giro_base", -180.0, 180.0, 0.5).name("Giro Base").listen()
     h.add(effectController, "giro_brazo", -45.0, 45.0, 0.5).name("Giro Brazo")
     h.add(effectController, "giro_antebrazo_y", -180.0, 180.0, 0.5).name("Giro Antebrazo Y")
     h.add(effectController, "giro_antebrazo_z", -90.0, 90.0, 0.5).name("Giro Antebrazo Z")
     h.add(effectController, "giro_pinza", 0.0, 180.0, 0.5).name("Giro Pinza")
     h.add(effectController, "separacion_pinza", 4, 30, 1).name("Separación Pinza")
+    h.add(effectController, "animacion").name("Animación")
     
 }
 
@@ -233,6 +242,7 @@ function updateAspectRatio(){
 
 function update(delta){
     
+    TWEEN.update(delta)
     base.rotation.y = effectController.giro_base / 180 * Math.PI
     brazo.rotation.z = effectController.giro_brazo / 180 * Math.PI
     antebrazo.rotation.y = effectController.giro_antebrazo_y / 180 * Math.PI
