@@ -212,9 +212,11 @@ function setupGUI() {
         animacion: ()=>{
         new TWEEN.Tween(effectController)
         .to({
-            giro_base: [100, -100]
+            giro_base: [45, 0, 0],
+            giro_antebrazo_z: [0,100,0]
         }, 1000)
-        .interpolation( TWEEN.Interpolation.Bezier )
+        .interpolation( TWEEN.Interpolation.Bezier)
+        .easing(TWEEN.Easing.Quadratic.Out)
         .start()
         }
 
