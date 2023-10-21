@@ -16,6 +16,7 @@ import {GUI} from "../lib/lil-gui.module.min.js"
 let renderer, scene, camera
 
 //Globales propias
+let suelo
 let robot;
 let base, brazo, antebrazo, mano, pinza_L, pinza_R;
 let cameraControls;
@@ -52,7 +53,7 @@ function init(){
     camera.position.set(150, 200, 150)
     camera.lookAt(0, 100, 0)
 
-    topCamera = new THREE.OrthographicCamera(-50,50,50,-50,100,800)
+    topCamera = new THREE.OrthographicCamera(-150,150,150,-150,150,800)
     topCamera.position.set(0, 500, 0)
     topCamera.up.set(1,0,0)
     topCamera.lookAt(0,100,0)
@@ -70,11 +71,10 @@ function init(){
 function loadScene(){
     //const default_material = new THREE.MeshBasicMaterial({color: new THREE.Color(1,0,0), wireframe: true})
     const default_material = new THREE.MeshNormalMaterial({wireframe:false, flatShading:true})
-    const green_material = new THREE.MeshBasicMaterial({color: new THREE.Color(0,1,0), wireframe: true})
     robot = new THREE.Object3D()
 
     //Suelo
-    const suelo = new THREE.Mesh(new THREE.PlaneGeometry(400,400, 10,10),default_material)
+    suelo = new THREE.Mesh(new THREE.PlaneGeometry(400,400, 10,10),default_material)
     suelo.rotateX(-Math.PI/2)
     scene.add(suelo)
 
@@ -171,9 +171,13 @@ function loadScene(){
 
     geometry_R.setAttribute('position', new THREE.BufferAttribute(positions_R, 3))
     geometry_R.setIndex(indexes)
-    geometry_L.setAttribute('position', new THREE.BufferAttribute(positions_L, 3))
+    geometry_R.computeVertexNormals();
 
+
+    geometry_L.setAttribute('position', new THREE.BufferAttribute(positions_L, 3))
     geometry_L.setIndex(indexes)
+    geometry_L.computeVertexNormals();
+
     pinza_R = new THREE.Mesh(geometry_R, default_material)
     pinza_L = new THREE.Mesh(geometry_L, default_material)
     //geometry_R.computeVertexNormals()
@@ -212,10 +216,14 @@ function setupGUI() {
         animacion: ()=>{
         new TWEEN.Tween(effectController)
         .to({
-            giro_base: [45, 0, 0],
-            giro_antebrazo_z: [0,100,0]
-        }, 1000)
-        .interpolation( TWEEN.Interpolation.Bezier)
+            giro_base:        [-90, -90,    -90,    -90,    -90,    -90,      0,      0,      0,    0],
+            giro_brazo:       [0,   -25,    -25,    -25,    -25,      0,      0,    -25,    -25,    0],
+            giro_antebrazo_z: [0,     0,    -95,    -95,    -95,    -95,    -95,    -95,    -95,    0],
+            giro_pinza:       [0,     0,     30,     30,     30,     30,     30,     30,     30,    0],
+            separacion_pinza: [30,    30,     30,    10,     10,     10,     10,     10,     20,    20],
+            giro_antebrazo_y: [0,0,0,0,0,0,0,0,0,0], 
+        }, 10000)
+        .interpolation( TWEEN.Interpolation.Linear)
         .easing(TWEEN.Easing.Quadratic.Out)
         .start()
         }
@@ -226,13 +234,37 @@ function setupGUI() {
 
     const h = gui.addFolder("Controles del Robot")
     h.add(effectController, "giro_base", -180.0, 180.0, 0.5).name("Giro Base").listen()
-    h.add(effectController, "giro_brazo", -45.0, 45.0, 0.5).name("Giro Brazo")
-    h.add(effectController, "giro_antebrazo_y", -180.0, 180.0, 0.5).name("Giro Antebrazo Y")
-    h.add(effectController, "giro_antebrazo_z", -90.0, 90.0, 0.5).name("Giro Antebrazo Z")
-    h.add(effectController, "giro_pinza", 0.0, 180.0, 0.5).name("Giro Pinza")
-    h.add(effectController, "separacion_pinza", 4, 30, 1).name("Separación Pinza")
+    h.add(effectController, "giro_brazo", -45.0, 45.0, 0.5).name("Giro Brazo").listen()
+    h.add(effectController, "giro_antebrazo_y", -180.0, 180.0, 0.5).name("Giro Antebrazo Y").listen()
+    h.add(effectController, "giro_antebrazo_z", -90.0, 90.0, 0.5).name("Giro Antebrazo Z").listen()
+    h.add(effectController, "giro_pinza", 0.0, 180.0, 0.5).name("Giro Pinza").listen()
+    h.add(effectController, "separacion_pinza", 4, 30, 1).name("Separación Pinza").listen()
+    h.add(effectController, "alambres").name("Alambres").onChange(activate_wires)
     h.add(effectController, "animacion").name("Animación")
     
+}
+
+function activate_wires(bool_val){
+
+    function recursive_set_material (obj,mat) {
+        obj.material = mat
+        obj.children.forEach(child => {
+            child.material = mat
+            recursive_set_material(child,mat)
+        });
+    }
+
+    if(bool_val){
+        const new_material = new THREE.MeshNormalMaterial({color: 'red', wireframe: true})
+        recursive_set_material(robot, new_material)
+        suelo.material = new_material
+    }
+    else{
+        const new_material =new THREE.MeshNormalMaterial({wireframe:bool_val, flatShading:true})
+        recursive_set_material(robot, new_material)
+        suelo.material = new_material
+
+    }
 }
 
 function updateAspectRatio(){
