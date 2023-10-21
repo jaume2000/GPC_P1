@@ -19,12 +19,16 @@ let renderer, scene, camera
 let suelo
 let robot;
 let base, brazo, antebrazo, mano, pinza_L, pinza_R;
+let brazo_base, brazo_medio, rotor, antebrazo_base, antebrazo_col1, antebrazo_col2, antebrazo_col3, antebrazo_col4, antebrazo_fin
 let cameraControls;
 let stats
 let effectController
 
 //Top camera
 let topCamera
+
+//Materiales
+let rotor_material, wood_material, stone_material, industrial_floor_material, copper_material
 
 const L = 5
 //Acciones
@@ -40,6 +44,8 @@ function init(){
     renderer = new THREE.WebGLRenderer()
     renderer.autoClear = false
     renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     document.getElementById('container').appendChild(renderer.domElement) //Añadimos el canvas de THREE JS al DOM.
 
     //Escena
@@ -58,11 +64,44 @@ function init(){
     topCamera.up.set(1,0,0)
     topCamera.lookAt(0,100,0)
 
+
+    // Luces
+    const ambiental = new THREE.AmbientLight(0x0f0f0f)
+    scene.add(ambiental)
+
+    const direccional = new THREE.DirectionalLight(0xffffff, 0.3)
+    direccional.position.set(400,500,400)
+    direccional.castShadow = true
+    scene.add(direccional)
+
+    const focal = new THREE.SpotLight(0xffaa00, 0.4)
+    focal.position.set(100,800,-200)
+    focal.target.position.set(0,0,0)
+    focal.angle = Math.PI / 20
+    focal.penumbra = 0.3
+    focal.shadow.camera.far = 3000;
+    focal.castShadow = true
+    scene.add(focal)
+
     //Monitor
 
     //stats = new Stats()
     //stats.setMode(0)
     //document.getElementById('container').appendChild(stats.domElement)
+
+    // Create materials
+    const texWood = new THREE.TextureLoader().load('./images/wood512.jpg')
+    wood_material = new THREE.MeshPhongMaterial({map: texWood})
+    const entorno = ["./images/posx.jpg", "./images/negx.jpg", "./images/posy.jpg", "./images/negy.jpg", "./images/posz.jpg", "./images/negz.jpg"]
+    const texEnvironment = new THREE.CubeTextureLoader().load(entorno)
+    rotor_material = new THREE.MeshPhongMaterial({color: 'gold', specular: 'white', metalness: 1, shininess: 100, roughness: 0.2, envMap: texEnvironment})
+    const indFloorTexture = new THREE.TextureLoader().load('./images/pisometalico_1024.jpg')
+    industrial_floor_material = new THREE.MeshPhongMaterial({map: indFloorTexture, shininess: 50})
+    const metalTexture = new THREE.TextureLoader().load('./images/metal_128.jpg')
+    copper_material = new THREE.MeshStandardMaterial({ color: 0xffaa00, map: metalTexture, metalness: 0.7, roughness: 0.4, shininess: 1, envMapIntensity: 1})
+    stone_material = new THREE.MeshStandardMaterial({color: 0xffffff, map: metalTexture, metalness: 0.7, roughness: 0.5, shininess: 1, envMapIntensity: 1})
+
+
 
     //Eventos
     window.addEventListener('resize', updateAspectRatio)
@@ -74,55 +113,79 @@ function loadScene(){
     robot = new THREE.Object3D()
 
     //Suelo
-    suelo = new THREE.Mesh(new THREE.PlaneGeometry(400,400, 10,10),default_material)
+    suelo = new THREE.Mesh(new THREE.PlaneGeometry(400,400, 100,100),industrial_floor_material)
     suelo.rotateX(-Math.PI/2)
+    suelo.receiveShadow = true
     scene.add(suelo)
 
     //Base del robot
-    base = new THREE.Mesh( new THREE.CylinderGeometry(50,50,15, 50), default_material)
+    base = new THREE.Mesh( new THREE.CylinderGeometry(50,50,15, 50), stone_material)
+    base.castShadow = true;
+    base.receiveShadow = true;
     robot.add(base)
 
     //Brazo
     brazo = new THREE.Object3D()
-    const brazo_base = new THREE.Mesh( new THREE.CylinderGeometry(20,20,18, 50), default_material)
+    brazo_base = new THREE.Mesh( new THREE.CylinderGeometry(20,20,18, 50), stone_material)
     brazo_base.rotateX(-Math.PI/2)
+    brazo_base.castShadow = true;
+    brazo_base.receiveShadow = true;
     brazo.add(brazo_base)
 
-    const brazo_medio = new THREE.Mesh( new THREE.BoxGeometry(18,120,12), default_material)
+    brazo_medio = new THREE.Mesh( new THREE.BoxGeometry(18,120,12), stone_material)
     brazo_medio.position.set(0,60,0)
+    brazo_medio.castShadow = true;
+    brazo_medio.receiveShadow = true;
     brazo.add(brazo_medio)
-    
-    const brazo_fin = new THREE.Mesh( new THREE.SphereGeometry(20,8,8), default_material)
-    brazo_fin.position.set(0,120,0)
-    brazo.add(brazo_fin)
+     
+    rotor = new THREE.Mesh( new THREE.SphereGeometry(20,20,20), rotor_material)
+    rotor.position.set(0,120,0)
+    rotor.castShadow = true;
+    rotor.receiveShadow = true;
+    brazo.add(rotor)
 
     //Antebrazo
     antebrazo = new THREE.Object3D()
-
     antebrazo.position.set(0,120,0)
-
-    const antebrazo_base = new THREE.Mesh( new THREE.CylinderGeometry(22,22, 6, 30), default_material)
+    
+    antebrazo_base = new THREE.Mesh( new THREE.CylinderGeometry(22,22, 6, 30), copper_material)
+    antebrazo_base.castShadow = true
+    antebrazo_base.receiveShadow = true
     antebrazo.add(antebrazo_base)
 
     const separation = 10;
-    const antebrazo_col1 = new THREE.Mesh( new THREE.BoxGeometry(4,80,4), default_material)
+    
+    antebrazo_col1 = new THREE.Mesh( new THREE.BoxGeometry(4,80,4), wood_material)
     antebrazo_col1.position.set(separation,40,separation)
+    antebrazo_col1.castShadow = true
+    antebrazo_col1.receiveShadow = true
     antebrazo.add(antebrazo_col1)
-    const antebrazo_col2 = new THREE.Mesh( new THREE.BoxGeometry(4,80,4), default_material)
+
+    antebrazo_col2 = new THREE.Mesh( new THREE.BoxGeometry(4,80,4), wood_material)
     antebrazo_col2.position.set(-separation,40,separation)
+    antebrazo_col2.castShadow = true
+    antebrazo_col2.receiveShadow = true
     antebrazo.add(antebrazo_col2)
-    const antebrazo_col3 = new THREE.Mesh( new THREE.BoxGeometry(4,80,4), default_material)
+
+    antebrazo_col3 = new THREE.Mesh( new THREE.BoxGeometry(4,80,4), wood_material)
     antebrazo_col3.position.set(separation,40,-separation)
+    antebrazo_col3.castShadow = true
+    antebrazo_col3.receiveShadow = true
     antebrazo.add(antebrazo_col3)
-    const antebrazo_col4 = new THREE.Mesh( new THREE.BoxGeometry(4,80,4), default_material)
+
+    antebrazo_col4 = new THREE.Mesh( new THREE.BoxGeometry(4,80,4), wood_material)
     antebrazo_col4.position.set(-separation,40,-separation)
+    antebrazo_col4.castShadow = true
+    antebrazo_col4.receiveShadow = true
     antebrazo.add(antebrazo_col4)
 
     mano = new THREE.Object3D()
 
     //Mano
-    const antebrazo_fin = new THREE.Mesh( new THREE.CylinderGeometry(15,15, 40, 30), default_material)
+    antebrazo_fin = new THREE.Mesh( new THREE.CylinderGeometry(15,15, 40, 30), copper_material)
     antebrazo_fin.rotateX(-Math.PI/2)
+    antebrazo_fin.castShadow = true
+    antebrazo_fin.receiveShadow = true
     mano.position.set(0,80,0)
     mano.add(antebrazo_fin)
     
@@ -178,10 +241,12 @@ function loadScene(){
     geometry_L.setIndex(indexes)
     geometry_L.computeVertexNormals();
 
-    pinza_R = new THREE.Mesh(geometry_R, default_material)
-    pinza_L = new THREE.Mesh(geometry_L, default_material)
-    //geometry_R.computeVertexNormals()
-    //geometry_L.computeVertexNormals()
+    pinza_R = new THREE.Mesh(geometry_R, stone_material)
+    pinza_R.castShadow = true
+    pinza_R.receiveShadow = true
+    pinza_L = new THREE.Mesh(geometry_L, stone_material)
+    pinza_L.castShadow = true
+    pinza_L.receiveShadow = true
     pinza_R.rotateY(Math.PI/2)
     pinza_L.rotateY(Math.PI/2)
     pinza_R.position.set(5,-10,10)
@@ -196,8 +261,6 @@ function loadScene(){
     brazo.add(antebrazo)
 
     base.add(brazo)
-
-    robot.add(new THREE.AxesHelper(50))
 
     robot.position.set(0,7.5,0)
     scene.add(robot)
@@ -255,16 +318,31 @@ function activate_wires(bool_val){
     }
 
     if(bool_val){
-        const new_material = new THREE.MeshNormalMaterial({color: 'red', wireframe: true})
+        const new_material = new THREE.MeshNormalMaterial({wireframe: true})
         recursive_set_material(robot, new_material)
         suelo.material = new_material
     }
     else{
-        const new_material =new THREE.MeshNormalMaterial({wireframe:bool_val, flatShading:true})
-        recursive_set_material(robot, new_material)
-        suelo.material = new_material
+        //Cambiar código para la práctica 4, la de materiales
+        suelo.material = industrial_floor_material
+        base.material = stone_material
+        brazo_base.material = stone_material
+        brazo_medio.material = stone_material
+        rotor.material = rotor_material
+        antebrazo_base.material = copper_material
+        antebrazo_col1.material = wood_material
+        antebrazo_col2.material = wood_material
+        antebrazo_col3.material = wood_material
+        antebrazo_col4.material = wood_material
+        antebrazo_fin.material = copper_material
+        pinza_L.material = stone_material
+        pinza_R.material = stone_material
 
     }
+}
+
+function setup_materials() {
+
 }
 
 function updateAspectRatio(){
