@@ -42,11 +42,12 @@ function init(){
 
     //Motor de renderer
     renderer = new THREE.WebGLRenderer()
-    renderer.autoClear = false
     renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.setClearColor( new THREE.Color(0xAABBCC));
     document.getElementById('container').appendChild(renderer.domElement) //Añadimos el canvas de THREE JS al DOM.
+    renderer.antialias = true
+    renderer.autoClear = false
+    renderer.shadowMap.enabled = true;
 
     //Escena
     scene = new THREE.Scene()
@@ -56,7 +57,7 @@ function init(){
     camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 10000)
     cameraControls = new OrbitControls(camera, renderer.domElement)
     cameraControls.target.set(0,100,0)
-    camera.position.set(150, 200, 150)
+    camera.position.set(150, 400, 150)
     camera.lookAt(0, 100, 0)
 
     topCamera = new THREE.OrthographicCamera(-150,150,150,-150,150,800)
@@ -69,15 +70,15 @@ function init(){
     const ambiental = new THREE.AmbientLight(0x0f0f0f)
     scene.add(ambiental)
 
-    const direccional = new THREE.DirectionalLight(0xffffff, 0.3)
+    const direccional = new THREE.DirectionalLight(0xffffff, 0.6)
     direccional.position.set(400,500,400)
     direccional.castShadow = true
     scene.add(direccional)
 
     const focal = new THREE.SpotLight(0xffaa00, 0.4)
-    focal.position.set(100,800,-200)
+    focal.position.set(100,800,-500)
     focal.target.position.set(0,0,0)
-    focal.angle = Math.PI / 20
+    focal.angle = Math.PI / 15
     focal.penumbra = 0.3
     focal.shadow.camera.far = 3000;
     focal.castShadow = true
@@ -88,6 +89,13 @@ function init(){
     //stats = new Stats()
     //stats.setMode(0)
     //document.getElementById('container').appendChild(stats.domElement)
+
+
+    //Eventos
+    window.addEventListener('resize', updateAspectRatio)
+}
+
+function loadScene(){
 
     // Create materials
     const texWood = new THREE.TextureLoader().load('./images/wood512.jpg')
@@ -101,19 +109,21 @@ function init(){
     copper_material = new THREE.MeshStandardMaterial({ color: 0xffaa00, map: metalTexture, metalness: 0.7, roughness: 0.4, shininess: 1, envMapIntensity: 1})
     stone_material = new THREE.MeshStandardMaterial({color: 0xffffff, map: metalTexture, metalness: 0.7, roughness: 0.5, shininess: 1, envMapIntensity: 1})
 
+    let paredes = []
+    for(let i=0; i<entorno.length; i++){
+        paredes.push(new THREE.MeshBasicMaterial({side: THREE.BackSide, map: new THREE.TextureLoader().load(entorno[i])}))
+    }
 
+    const geoHabitacion = new THREE.BoxGeometry(10000,10000,10000)
+    const habitacion = new THREE.Mesh(geoHabitacion, paredes)
+    scene.add(habitacion)
 
-    //Eventos
-    window.addEventListener('resize', updateAspectRatio)
-}
-
-function loadScene(){
     //const default_material = new THREE.MeshBasicMaterial({color: new THREE.Color(1,0,0), wireframe: true})
     const default_material = new THREE.MeshNormalMaterial({wireframe:false, flatShading:true})
     robot = new THREE.Object3D()
 
     //Suelo
-    suelo = new THREE.Mesh(new THREE.PlaneGeometry(400,400, 100,100),industrial_floor_material)
+    suelo = new THREE.Mesh(new THREE.PlaneGeometry(500,500, 100,100),industrial_floor_material)
     suelo.rotateX(-Math.PI/2)
     suelo.receiveShadow = true
     scene.add(suelo)
