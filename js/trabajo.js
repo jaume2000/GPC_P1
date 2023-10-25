@@ -55,7 +55,7 @@ let linear_misil_time = 0
 let linear_misil_velocity = 10000
 let linear_misil_interval_time = 0.2
 let static_laser_time = 0
-let static_laser_interval_time = 1
+let static_laser_interval_time = 3
 
 //Keyboard
 let keypress_W = false
@@ -196,13 +196,14 @@ function loadScene(){
     ship.add(ship_end)
     ship.setRotationFromEuler(new THREE.Euler( ...ship_eulers, 'XYZ' ))
     ship_end.setRotationFromEuler(new THREE.Euler(ship_rotation,0,0))
+    ship_end.gameOver = gameOver
     
-    //new LaserSatelit(randEuler() ,ship, linear_misil_velocity, scene, instanciables, ship_distance, camera_distance, radio_planeta)
+    //new LaserSatelit(ship, randEuler(), linear_misil_velocity, scene, instanciables, ship_distance, camera_distance, radio_planeta)
 
-    new RandomPlanet(randEuler(), scene, instanciables, ship_distance, camera_distance, moon_radius)
-    new RandomPlanet(randEuler(), scene, instanciables, ship_distance, camera_distance, moon_radius)
-    new RandomPlanet(randEuler(), scene, instanciables, ship_distance, camera_distance, moon_radius)
-    new RandomPlanet(randEuler(), scene, instanciables, ship_distance, camera_distance, moon_radius)
+    new RandomPlanet(ship_end, randEuler(), scene, instanciables, ship_distance, camera_distance, moon_radius)
+    new RandomPlanet(ship_end, randEuler(), scene, instanciables, ship_distance, camera_distance, moon_radius)
+    new RandomPlanet(ship_end, randEuler(), scene, instanciables, ship_distance, camera_distance, moon_radius)
+    new RandomPlanet(ship_end, randEuler(), scene, instanciables, ship_distance, camera_distance, moon_radius)
     scene.add(ship)
     
 
@@ -303,7 +304,7 @@ function update(){
         else{
             eulers = randEuler()
         }
-        new LinearMisil(eulers, linear_misil_velocity, scene, instanciables, ship_distance, camera_distance, radio_planeta)
+        new LinearMisil(ship_end, eulers, linear_misil_velocity, scene, instanciables, ship_distance, camera_distance, radio_planeta)
 
 
         linear_misil_time=0
@@ -319,7 +320,14 @@ function update(){
         else{
             eulers = randEuler()
         }
-        new StaticLaser(eulers, scene, instanciables, ship_distance, camera_distance, radio_planeta)
+        new StaticLaser(ship_end, eulers, scene, instanciables, ship_distance, camera_distance, radio_planeta)
+
+        for(let i = 0; i< 10; i++){
+            eulers = randEuler()
+
+            new StaticLaser(ship_end, eulers, scene, instanciables, ship_distance, camera_distance, radio_planeta)
+        
+        }
         static_laser_time=0
     }
 
@@ -339,6 +347,10 @@ function render(){
     renderer.render(scene, camera)
 }
 
+function gameOver(){
+    gameover = true
+    document.getElementById("gameover_screen").style.display = "flex"
+}
 
 function randEuler(){
     return new THREE.Euler(Math.random()*Math.PI*2,Math.random()*Math.PI*2,Math.random()*Math.PI*2)

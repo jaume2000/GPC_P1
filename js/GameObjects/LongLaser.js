@@ -7,7 +7,8 @@ export default class LongLaser {
     static third_phase_time = 3.1
     static final_phase_time = 4
 
-    constructor(eulers, scene, instanciables, ship_distance, camera_distance, radio_planeta){
+    constructor(ship, eulers, scene, instanciables, ship_distance, camera_distance, radio_planeta){
+        this.ship = ship
         this.scene = scene
         this.instanciables = instanciables
         this.ship_distance = ship_distance

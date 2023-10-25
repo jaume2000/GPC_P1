@@ -1,7 +1,8 @@
 import * as THREE from '../../lib/three.module.js'
 
 export default class LinearMisil {
-    constructor(eulers, velocity, scene, instanciables, ship_distance, camera_distance, radio_planeta){
+    constructor(ship, eulers, velocity, scene, instanciables, ship_distance, camera_distance, radio_planeta){
+        this.ship = ship
         this.velocity = velocity
         this.scene = scene
         this.instanciables = instanciables

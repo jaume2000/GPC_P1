@@ -5,14 +5,14 @@ export default class LaserSatelit {
     static first_phase_time = 10
     static second_phase_time = 20
 
-    constructor(init_eulers, ship,velocity, scene, instanciables, ship_distance, camera_distance, radio_planeta){
+    constructor(ship, init_eulers,velocity, scene, instanciables, ship_distance, camera_distance, radio_planeta){
+        this.ship = ship
         this.velocity = velocity
         this.scene = scene
         this.instanciables = instanciables
         this.ship_distance = ship_distance
         this.camera_distance = camera_distance[0]
         
-        this.ship = ship
 
         //this.geometry = new THREE.Mesh(new THREE.SphereGeometry(50,50,planet_wires,planet_wires), new THREE.MeshBasicMaterial())
         this.center = new THREE.Object3D()

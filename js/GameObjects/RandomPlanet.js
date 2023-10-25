@@ -7,7 +7,8 @@ export default class RandomPlanet {
     static third_phase_time = 3.1
     static final_phase_time = 4
 
-    constructor(eulers, scene, instanciables, ship_distance, camera_distance, radio_planeta){
+    constructor(ship, eulers, scene, instanciables, ship_distance, camera_distance, radio_planeta){
+        this.ship = ship
         this.scene = scene
         this.instanciables = instanciables
         this.ship_distance = ship_distance
@@ -46,35 +47,5 @@ export default class RandomPlanet {
     update(delta){
 
         this.geometry.rotateY(delta)
-/*
-        this.alive+=delta
-
-        if (this.alive < RandomPlanet.first_phase_time){
-
-        }
-        else if (this.alive < RandomPlanet.second_phase_time){
-            this.laser_material.opacity = (this.alive -  RandomPlanet.first_phase_time)/(RandomPlanet.second_phase_time)*0.25
-            
-        }
-        else if (this.alive < RandomPlanet.third_phase_time){
-            //Activate laser
-            this.laser_material.opacity = 1
-        }
-        else if (this.alive < RandomPlanet.final_phase_time){
-            this.laser_material.opacity = Math.max(RandomPlanet.final_phase_time-this.alive,0)/(RandomPlanet.final_phase_time - RandomPlanet.third_phase_time)
-        }
-        else{
-            this.opacity=0.1
-            const indiceObjetoAEliminar = this.instanciables.indexOf(this);
-
-            if (indiceObjetoAEliminar !== -1) {
-                this.instanciables.splice(indiceObjetoAEliminar, 1);
-            }        
-            this.center.remove(this.orbit)   
-            this.scene.remove( this.planet )
-            this.scene.remove( this.center )
-        }
-        */
-    
     }
 }
