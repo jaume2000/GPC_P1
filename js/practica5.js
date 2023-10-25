@@ -24,12 +24,20 @@ let cameraControls;
 let stats
 let effectController
 
+// Variables de Controles
+let keypress_Up = false
+let keypress_Left = false
+let keypress_Right = false
+let keypress_Down = false
+let clock;
+let map_borders = 140
+let robot_vel = 100
+
 //Top camera
 let topCamera
 
 //Materiales
 let rotor_material, wood_material, stone_material, industrial_floor_material, copper_material
-
 const L = 5
 //Acciones
 
@@ -41,6 +49,7 @@ render();
 function init(){
 
     //Motor de renderer
+    clock = new THREE.Clock(true)
     renderer = new THREE.WebGLRenderer()
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setClearColor( new THREE.Color(0xAABBCC));
@@ -70,11 +79,17 @@ function init(){
     const ambiental = new THREE.AmbientLight(0x0f0f0f)
     scene.add(ambiental)
 
-    const direccional = new THREE.DirectionalLight(0xffffff, 0.6)
-    direccional.position.set(1,2,1)
+    const direccional = new THREE.DirectionalLight(0xffffff, 0.4)
+    direccional.position.set(200,400,200)
     direccional.castShadow = true
-    direccional.shadow.camera.far = 3000;
+    direccional.shadow.camera.far = 1000;
+    direccional.shadow.camera.near = 0.1;
+    direccional.shadow.camera.left = -300;
+    direccional.shadow.camera.right = 300;
+    direccional.shadow.camera.top = 300;
+    direccional.shadow.camera.bottom = -300;
     scene.add(direccional)
+    //scene.add(new THREE.CameraHelper(direccional.shadow.camera))
 
 
     const focal = new THREE.SpotLight(0xffaa00, 0.4)
@@ -95,6 +110,8 @@ function init(){
 
     //Eventos
     window.addEventListener('resize', updateAspectRatio)
+    document.addEventListener('keydown', keyPressed, false)
+    document.addEventListener('keyup', keyRelased, false)
 }
 
 function loadScene(){
@@ -353,8 +370,38 @@ function activate_wires(bool_val){
     }
 }
 
-function setup_materials() {
+function keyPressed(event){
+    let key = event.key;
+    if (key == 'ArrowUp'){
+        keypress_Up = true
+    }
+    if (key == 'ArrowDown'){
+        keypress_Down = true
+    }
+    if (key == 'ArrowLeft'){
+        keypress_Left = true
+    }
+    if (key == 'ArrowRight'){
+        keypress_Right = true
+    }
+    
+}
 
+function keyRelased(event){
+    let key = event.key;
+    if (key == 'ArrowUp'){
+        keypress_Up = false
+    }
+    if (key == 'ArrowDown'){
+        keypress_Down = false
+    }
+    if (key == 'ArrowLeft'){
+        keypress_Left = false
+    }
+    if (key == 'ArrowRight'){
+        keypress_Right = false
+    }
+    
 }
 
 function updateAspectRatio(){
@@ -364,9 +411,11 @@ function updateAspectRatio(){
     camera.updateProjectionMatrix()
 }
 
-function update(delta){
+function update(){
     
-    TWEEN.update(delta)
+    const delta = clock.getDelta()
+
+    TWEEN.update()
     base.rotation.y = effectController.giro_base / 180 * Math.PI
     brazo.rotation.z = effectController.giro_brazo / 180 * Math.PI
     antebrazo.rotation.y = effectController.giro_antebrazo_y / 180 * Math.PI
@@ -374,6 +423,29 @@ function update(delta){
     mano.rotation.z = effectController.giro_pinza / 180 * Math.PI
     pinza_R.position.set(5,-10, -effectController.separacion_pinza/2)
     pinza_L.position.set(5,-10, effectController.separacion_pinza/2)
+
+    if(robot.position.z < map_borders && robot.position.z > -map_borders){
+        robot.translateZ(+keypress_Left*delta*robot_vel - keypress_Right*delta*robot_vel)
+    }
+    else if (robot.position.z >= map_borders){
+        robot.translateZ(-keypress_Right*delta*robot_vel)
+    }
+    else{
+        robot.translateZ(+keypress_Left*delta*robot_vel)
+    }
+
+    if(robot.position.x < map_borders && robot.position.x > -map_borders){
+        robot.translateX(+keypress_Down*delta*robot_vel - keypress_Up*delta*map_borders)
+
+    }
+    else if (robot.position.x >= map_borders){
+        robot.translateX(-keypress_Up*delta*robot_vel)
+
+    }
+    else{
+        robot.translateX(+keypress_Down*delta*robot_vel)
+    }
+
 
 }
 
