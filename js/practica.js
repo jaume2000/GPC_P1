@@ -71,9 +71,11 @@ function init(){
     scene.add(ambiental)
 
     const direccional = new THREE.DirectionalLight(0xffffff, 0.6)
-    direccional.position.set(400,500,400)
+    direccional.position.set(1,2,1)
     direccional.castShadow = true
+    direccional.shadow.camera.far = 3000;
     scene.add(direccional)
+
 
     const focal = new THREE.SpotLight(0xffaa00, 0.4)
     focal.position.set(100,800,-500)
