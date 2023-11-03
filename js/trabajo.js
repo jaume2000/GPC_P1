@@ -124,7 +124,7 @@ function loadScene(){
 
     const loader = new THREE.TextureLoader();
     const texture = loader.load(
-      './images/2k_stars_milky_way.jpg',
+      'images/2k_stars_milky_way.jpg',
       () => {
         texture.mapping = THREE.EquirectangularReflectionMapping;
         texture.colorSpace = THREE.SRGBColorSpace;
@@ -137,12 +137,12 @@ function loadScene(){
     const default_material = new THREE.MeshNormalMaterial({wireframe:false, flatShading:true})
     const green_material = new THREE.MeshBasicMaterial({color: new THREE.Color(0,1,0), wireframe: true})
 
-    let earthMaterial = createPlanetMaterial("./images/2k_sun.jpg");
+    let earthMaterial = createPlanetMaterial("images/2k_sun.jpg");
     planet = new THREE.Mesh(new THREE.SphereGeometry(radio_planeta, planet_wires, planet_wires), earthMaterial)
     planet.rotateX(21/180*Math.PI)
     scene.add(planet)
 
-    let moonMaterial = createPlanetMaterial("./images/2k_earth_daymap.jpg");
+    let moonMaterial = createPlanetMaterial("images/2k_earth_daymap.jpg");
     moon = new THREE.Object3D()
     moon_geometry = new THREE.Mesh(new THREE.SphereGeometry(moon_radius, planet_wires, planet_wires), moonMaterial)
     moon_geometry.translateX(-ship_distance)
