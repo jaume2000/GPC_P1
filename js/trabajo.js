@@ -35,7 +35,7 @@ let ship_rotation = 0
 let ship_acceleration = 50
 let ship_max_velocity = 0.01
 
-let camera_distance = [800,20,0]
+let camera_distance = [800,100,0]
 
 let gameover = false
 let gameover_delta = 0.005
@@ -65,6 +65,11 @@ let keypress_W = false
 let keypress_A = false
 let keypress_D = false
 let keypress_S = false
+
+let keypress_W_before = false
+let keypress_A_before = false
+let keypress_D_before = false
+let keypress_S_before = false
 
 //Acciones
 
@@ -163,7 +168,7 @@ function loadScene(){
 
         ship_geometry.scale.set(30,30,30)
         ship_geometry_rotator.add(ship_geometry)
-        ship_geometry_rotator.rotateZ(-Math.PI/4)
+        ship_geometry_rotator.rotateZ(-Math.PI/8)
         //scene.add(ship_geometry)
         ship_end.geometry_rotator = ship_geometry_rotator
         ship_end.geometry = ship_geometry
@@ -175,7 +180,7 @@ function loadScene(){
         camera.position.set(camera_distance[0], camera_distance[1] , camera_distance[2])
 
         console.log(gltf.scene.getWorldPosition(new THREE.Vector3()))
-        const ambient_light = new THREE.AmbientLight(new THREE.Color(1,1,1), 1)
+        const ambient_light = new THREE.AmbientLight(new THREE.Color(1,1,1), 0.5)
         
         ship.add(ship_end)
         ship.setRotationFromEuler(new THREE.Euler( ...ship_eulers, 'XYZ' ))
@@ -250,6 +255,8 @@ function keyRelased(event){
 
 function update(){
 
+    TWEEN.update()
+
     let delta = clock.getDelta()
     
     if(gameover){
@@ -280,6 +287,70 @@ function update(){
         ship_rotation-=1*delta
     }
 
+    //Animaciones con TWEEN
+    if(!keypress_A_before && keypress_A){
+        new TWEEN.Tween(ship_end.geometry_rotator.rotation)
+        .to({
+            x: Math.PI/8
+        }, 200)
+        .interpolation( TWEEN.Interpolation.Linear)
+        .easing(TWEEN.Easing.Quadratic.Out)
+        .start()
+    }
+    if(!keypress_D_before && keypress_D){
+
+        new TWEEN.Tween(ship_end.geometry_rotator.rotation)
+        .to({
+            x: -Math.PI/8
+        }, 200)
+        .interpolation( TWEEN.Interpolation.Linear)
+        .easing(TWEEN.Easing.Quadratic.Out)
+        .start()
+    }
+
+    if((keypress_A_before || keypress_D_before) && (!keypress_A && !keypress_D)) {
+        new TWEEN.Tween(ship_end.geometry_rotator.rotation)
+        .to({
+            x: 0
+        }, 200)
+        .interpolation( TWEEN.Interpolation.Linear)
+        .easing(TWEEN.Easing.Quadratic.Out)
+        .start()
+    }
+
+
+
+    if(!keypress_W_before && keypress_W){
+
+        new TWEEN.Tween(ship_end.geometry_rotator.rotation)
+        .to({
+            z: Math.PI/8
+        }, 200)
+        .interpolation( TWEEN.Interpolation.Linear)
+        .easing(TWEEN.Easing.Quadratic.Out)
+        .start()
+    }
+    if(!keypress_S_before && keypress_S){
+
+        new TWEEN.Tween(ship_end.geometry_rotator.rotation)
+        .to({
+            z: -Math.PI/4
+        }, 200)
+        .interpolation( TWEEN.Interpolation.Linear)
+        .easing(TWEEN.Easing.Quadratic.Out)
+        .start()
+    }
+
+    if((keypress_W_before || keypress_S_before) && (!keypress_W && !keypress_S)) {
+        new TWEEN.Tween(ship_end.geometry_rotator.rotation)
+        .to({
+            z: -Math.PI/8
+        }, 200)
+        .interpolation( TWEEN.Interpolation.Linear)
+        .easing(TWEEN.Easing.Quadratic.Out)
+        .start()
+    }
+
 
 
     ship.rotateZ(ship_euler_velocity[1])
@@ -288,7 +359,10 @@ function update(){
     moon_geometry.rotateY(moon_rotation_velocity*delta)
     planet.rotateY(earth_rotation*delta)
     ship_end.setRotationFromEuler(new THREE.Euler(ship_rotation,0,0))
-    ship_end.geometry?.rotateY(Math.PI/2 * delta)
+
+    if(!gameover){
+        ship_end.geometry?.rotateY(Math.PI/2 * delta)
+    }
 
     //instanciables.forEach(i=>i.update(delta))
     //progressor.update(delta)
@@ -340,6 +414,11 @@ function update(){
     if(!gameover){
         score.innerText = Math.round(clock.elapsedTime)
     }
+
+    keypress_A_before = keypress_A
+    keypress_S_before = keypress_S
+    keypress_D_before = keypress_D
+    keypress_W_before = keypress_W
 }
 
 function render(){
@@ -356,10 +435,49 @@ function gameOver(){
     if (gameover){return;}
 
     gameover = true
+    animateOnDeath(ship_end.geometry)
     document.getElementById("gameover_screen").style.display = "flex"
     document.getElementById("gameover_score").innerText = score.innerText
     document.getElementById("score").style.display = "none"
     document.getElementById("container").style.filter = "saturate(0)"
     ship_euler_velocity[0] *= gameover_delta
     ship_euler_velocity[1] *= gameover_delta
+
+    
+    new TWEEN.Tween()
+        .to({
+            z: -Math.PI/8
+        }, 200)
+        .interpolation( TWEEN.Interpolation.Linear)
+        .easing(TWEEN.Easing.Quadratic.Out)
+        .start()
+}
+
+function animateOnDeath(geometry) {
+    if (geometry.children.length == 0){
+        console.log("Yes")
+        geometry.position.y = 3
+
+        new TWEEN.Tween(geometry.rotation)
+        .to({
+            x: (Math.random()*2-1)*Math.PI*10,
+            y: (Math.random()*2-1)*Math.PI*10,
+        }, 10000)
+        .interpolation( TWEEN.Interpolation.Linear)
+        .easing(TWEEN.Easing.Quadratic.Out)
+        .start()
+
+        new TWEEN.Tween(geometry.position)
+        .to({
+            x: (Math.random()*2-1)*1000,
+            y: (Math.random()*2-1)*1000,
+            z: (Math.random()*2-1)*1000,
+        }, 100000)
+        .interpolation( TWEEN.Interpolation.Linear)
+        .easing(TWEEN.Easing.Quadratic.Out)
+        .start()
+    }
+    else{
+        geometry.children.forEach(c=>animateOnDeath(c))
+    }
 }
