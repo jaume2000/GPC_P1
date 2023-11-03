@@ -39,6 +39,7 @@ let camera_distance = [800,100,0]
 
 let gameover = false
 let gameover_delta = 0.005
+let destruction_moving_tween_time = 2000
 
 
 // Variables de consenso. SIEMPRE necesarias
@@ -288,7 +289,7 @@ function update(){
     }
 
     //Animaciones con TWEEN
-    if(!keypress_A_before && keypress_A){
+    if(!gameover && !keypress_A_before && keypress_A){
         new TWEEN.Tween(ship_end.geometry_rotator.rotation)
         .to({
             x: Math.PI/8
@@ -297,7 +298,7 @@ function update(){
         .easing(TWEEN.Easing.Quadratic.Out)
         .start()
     }
-    if(!keypress_D_before && keypress_D){
+    if(!gameover && !keypress_D_before && keypress_D){
 
         new TWEEN.Tween(ship_end.geometry_rotator.rotation)
         .to({
@@ -308,7 +309,7 @@ function update(){
         .start()
     }
 
-    if((keypress_A_before || keypress_D_before) && (!keypress_A && !keypress_D)) {
+    if(!gameover && (keypress_A_before || keypress_D_before) && (!keypress_A && !keypress_D)) {
         new TWEEN.Tween(ship_end.geometry_rotator.rotation)
         .to({
             x: 0
@@ -320,7 +321,7 @@ function update(){
 
 
 
-    if(!keypress_W_before && keypress_W){
+    if(!gameover && !keypress_W_before && keypress_W){
 
         new TWEEN.Tween(ship_end.geometry_rotator.rotation)
         .to({
@@ -330,7 +331,7 @@ function update(){
         .easing(TWEEN.Easing.Quadratic.Out)
         .start()
     }
-    if(!keypress_S_before && keypress_S){
+    if(!gameover && !keypress_S_before && keypress_S){
 
         new TWEEN.Tween(ship_end.geometry_rotator.rotation)
         .to({
@@ -341,7 +342,7 @@ function update(){
         .start()
     }
 
-    if((keypress_W_before || keypress_S_before) && (!keypress_W && !keypress_S)) {
+    if(!gameover && (keypress_W_before || keypress_S_before) && (!keypress_W && !keypress_S)) {
         new TWEEN.Tween(ship_end.geometry_rotator.rotation)
         .to({
             z: -Math.PI/8
@@ -364,8 +365,7 @@ function update(){
         ship_end.geometry?.rotateY(Math.PI/2 * delta)
     }
 
-    //instanciables.forEach(i=>i.update(delta))
-    //progressor.update(delta)
+    progressor.update(delta)
 
 
     /*
@@ -442,15 +442,6 @@ function gameOver(){
     document.getElementById("container").style.filter = "saturate(0)"
     ship_euler_velocity[0] *= gameover_delta
     ship_euler_velocity[1] *= gameover_delta
-
-    
-    new TWEEN.Tween()
-        .to({
-            z: -Math.PI/8
-        }, 200)
-        .interpolation( TWEEN.Interpolation.Linear)
-        .easing(TWEEN.Easing.Quadratic.Out)
-        .start()
 }
 
 function animateOnDeath(geometry) {
@@ -462,7 +453,7 @@ function animateOnDeath(geometry) {
         .to({
             x: (Math.random()*2-1)*Math.PI*10,
             y: (Math.random()*2-1)*Math.PI*10,
-        }, 10000)
+        }, 100000)
         .interpolation( TWEEN.Interpolation.Linear)
         .easing(TWEEN.Easing.Quadratic.Out)
         .start()
@@ -472,7 +463,7 @@ function animateOnDeath(geometry) {
             x: (Math.random()*2-1)*1000,
             y: (Math.random()*2-1)*1000,
             z: (Math.random()*2-1)*1000,
-        }, 100000)
+        }, 1000000)
         .interpolation( TWEEN.Interpolation.Linear)
         .easing(TWEEN.Easing.Quadratic.Out)
         .start()
