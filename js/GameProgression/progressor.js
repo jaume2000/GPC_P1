@@ -94,7 +94,7 @@ class Progressor{
         (data)=>(delta)=>{
             if(data.counter>data.spawn_time){
                 let start_wait = Math.max(3-data.elapsed_time, 0)
-                new StaticLaser(this.player, this.player.parent.rotation, this.scene, this.instances, 0, 0.1 +start_wait, 0.5+start_wait, 5)
+                new StaticLaser(this.player, this.player.parent.rotation, this.scene, this.instances, 0, 0.2 +start_wait, 0.5+start_wait, 5)
                 data.counter = 0
             }
             data.counter+=delta
