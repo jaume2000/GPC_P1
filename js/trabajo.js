@@ -161,7 +161,7 @@ function loadScene(){
 
     
     var model_loader = new GLTFLoader();
-    model_loader.load('./models/spaceship/ufo.glb', function(gltf) {
+    model_loader.load('models/spaceship/ufo.glb', function(gltf) {
         console.log(gltf.scene)
         let ship_geometry_rotator = new THREE.Object3D()
         let ship_geometry = gltf.scene
