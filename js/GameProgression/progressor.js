@@ -103,7 +103,7 @@ class Progressor{
 
         //Cuarta fase
         this.phases.push(new Phase({
-            duration: 10,
+            duration: 20,
             spawn_amount: 1,
             spawn_time: 2,
             elapsed_time: 0,
