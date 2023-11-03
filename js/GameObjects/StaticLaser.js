@@ -20,7 +20,7 @@ export default class StaticLaser {
         this.ship_collision_point = new THREE.Object3D()
         //this.geometry = new THREE.Mesh(new THREE.TorusGeometry(200, 100, 10, 30), new THREE.MeshNormalMaterial())
 
-        this.laser_material = new THREE.MeshBasicMaterial({color: 0xffffff, transparent: true, opacity: 0, side: THREE.DoubleSide})
+        this.laser_material = new THREE.MeshBasicMaterial({color: 0xffffff, transparent: true, opacity: 0, side: THREE.DoubleSide, depthWrite: false})
 
         this.laser = new THREE.Mesh(new THREE.CylinderGeometry(1000, 10, this.ship_distance*2, 10, 10), this.laser_material)
         
@@ -69,10 +69,14 @@ export default class StaticLaser {
             if (indiceObjetoAEliminar !== -1) {
                 this.instanciables.splice(indiceObjetoAEliminar, 1);
             }        
-            this.center.remove(this.laser)   
-            this.scene.remove( this.laser )
-            this.scene.remove( this.center )
+            this.destroy()
         }
     
+    }
+
+    destroy(){
+        this.center.remove(this.laser)   
+        this.scene.remove( this.laser )
+        this.scene.remove( this.center )
     }
 }

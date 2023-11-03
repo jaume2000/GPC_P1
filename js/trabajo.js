@@ -52,13 +52,7 @@ let planet, moon, moon_geometry
 let ship, ship_end
 let canon
 
-// Lista de misiles
-let instanciables = []
-let linear_misil_time = 0
-let linear_misil_velocity = 10000
-let linear_misil_interval_time = 0.2
-let static_laser_time = 0
-let static_laser_interval_time = 3
+//El progresor de fases
 let progressor;
 
 //Keyboard
@@ -89,6 +83,8 @@ function init(){
     renderer.autoClear = false
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.updateShadowMap.enabled = true
+    renderer.shadowMap.enabled = true;
+    renderer.antialias=true
     document.getElementById('container').appendChild(renderer.domElement) //Añadimos el canvas de THREE JS al DOM.
 
     //Escena
@@ -111,17 +107,22 @@ function init(){
 function loadScene(){
 
 
-    function createPlanetMaterial(route) {
+    function createPlanetMaterial(route, shadows=false, obj={}) {
 
         var earthTexture = THREE.ImageUtils.loadTexture(route);
     
-        var earthMaterial = new THREE.MeshBasicMaterial();
+        var earthMaterial = null
+        if(shadows){
+            earthMaterial = new THREE.MeshStandardMaterial(obj)
+        }
+        else{
+            earthMaterial = new THREE.MeshBasicMaterial();
+        }
         earthMaterial.map = earthTexture;
     
         return earthMaterial;
     }
 
-    const light = new THREE.DirectionalLight(0xffffff, 10)
 
     const loader = new THREE.TextureLoader();
     const texture = loader.load(
@@ -138,12 +139,12 @@ function loadScene(){
     const default_material = new THREE.MeshNormalMaterial({wireframe:false, flatShading:true})
     const green_material = new THREE.MeshBasicMaterial({color: new THREE.Color(0,1,0), wireframe: true})
 
-    let earthMaterial = createPlanetMaterial("../images/2k_sun.jpg");
-    planet = new THREE.Mesh(new THREE.SphereGeometry(radio_planeta, planet_wires, planet_wires), earthMaterial)
+    let sunMaterial = createPlanetMaterial("../images/2k_sun.jpg");
+    planet = new THREE.Mesh(new THREE.SphereGeometry(radio_planeta, planet_wires, planet_wires), sunMaterial)
     planet.rotateX(21/180*Math.PI)
     scene.add(planet)
 
-    let moonMaterial = createPlanetMaterial("../images/2k_earth_daymap.jpg");
+    let moonMaterial = createPlanetMaterial("../images/2k_earth_daymap.jpg", true);
     moon = new THREE.Object3D()
     moon_geometry = new THREE.Mesh(new THREE.SphereGeometry(moon_radius, planet_wires, planet_wires), moonMaterial)
     moon_geometry.translateX(-ship_distance)
@@ -170,7 +171,7 @@ function loadScene(){
         ship_geometry.scale.set(30,30,30)
         ship_geometry_rotator.add(ship_geometry)
         ship_geometry_rotator.rotateZ(-Math.PI/8)
-        //scene.add(ship_geometry)
+
         ship_end.geometry_rotator = ship_geometry_rotator
         ship_end.geometry = ship_geometry
 
@@ -181,33 +182,33 @@ function loadScene(){
         camera.position.set(camera_distance[0], camera_distance[1] , camera_distance[2])
 
         console.log(gltf.scene.getWorldPosition(new THREE.Vector3()))
-        const ambient_light = new THREE.AmbientLight(new THREE.Color(1,1,1), 0.5)
         
         ship.add(ship_end)
         ship.setRotationFromEuler(new THREE.Euler( ...ship_eulers, 'XYZ' ))
         ship_end.setRotationFromEuler(new THREE.Euler(ship_rotation,0,0))
 
         scene.add(ship)
-        scene.add(ambient_light)
     });
     
     ship_end.gameOver = gameOver
     ship_end.ship_distance = ship_distance
     ship_end.camera_distance = camera_distance
 
+
+    //Luces
+    const puntuallight = new THREE.PointLight(new THREE.Color(1,0.8,0.8), 0.7, ship_distance*2)
+    puntuallight.castShadow = true;
+    scene.add(puntuallight)
+
+    const ambientlight = new THREE.AmbientLight(new THREE.Color(1,1,1), 0.2)
+    puntuallight.castShadow = true;
+    scene.add(puntuallight)
+
+
+    //Creación del progresor
     progressor = new Progressor(ship_end, scene)
 
-    
-
-    
-    //new LaserSatelit(ship, randEuler(), linear_misil_velocity, scene, instanciables, ship_distance, camera_distance, radio_planeta)
-
-    /*
-    new RandomPlanet(ship_end, randEuler(), scene, instanciables, ship_distance, camera_distance, moon_radius)
-    new RandomPlanet(ship_end, randEuler(), scene, instanciables, ship_distance, camera_distance, moon_radius)
-    new RandomPlanet(ship_end, randEuler(), scene, instanciables, ship_distance, camera_distance, moon_radius)
-    new RandomPlanet(ship_end, randEuler(), scene, instanciables, ship_distance, camera_distance, moon_radius)
-    */    
+    scene.camera = camera 
 
 
 }
@@ -367,50 +368,6 @@ function update(){
 
     progressor.update(delta)
 
-
-    /*
-    linear_misil_time+= delta
-    static_laser_time+= delta
-    if(linear_misil_time>linear_misil_interval_time){
-        //createLinealShoot(Math.random()*Math.PI*2, Math.random()*Math.PI*2, linear_misil_velocity)
-        //console.log(ship.rotation)
-
-        let eulers;
-        if (Math.random() <0.05){
-            eulers = ship.rotation
-        }
-        else{
-            eulers = randEuler()
-        }
-        new LinearMisil(ship_end, eulers, linear_misil_velocity, scene, instanciables, ship_distance, camera_distance, radio_planeta)
-
-
-        linear_misil_time=0
-    }
-
-    if(static_laser_time>static_laser_interval_time){
-        //createLinealShoot(Math.random()*Math.PI*2, Math.random()*Math.PI*2, linear_misil_velocity)
-        //console.log(ship.rotation)
-        let eulers;
-        if (Math.random() <0.10){
-            eulers = ship.rotation
-        }
-        else{
-            eulers = randEuler()
-        }
-        new StaticLaser(ship_end, eulers, scene, instanciables, ship_distance, camera_distance, radio_planeta)
-
-        for(let i = 0; i< 10; i++){
-            eulers = randEuler()
-
-            new StaticLaser(ship_end, eulers, scene, instanciables, ship_distance, camera_distance, radio_planeta)
-        
-        }
-        static_laser_time=0
-    }
-
-    */
-
     if(!gameover){
         score.innerText = Math.round(clock.elapsedTime)
     }
@@ -426,6 +383,7 @@ function render(){
     update()
 
     renderer.clear()
+    renderer.clearDepth();
 
     renderer.setViewport(0,0, window.innerWidth, window.innerHeight)
     renderer.render(scene, camera)
