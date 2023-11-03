@@ -43,7 +43,7 @@ class Progressor{
 
         //Primera fase
         this.phases.push(new Phase({
-            duration: 15,
+            duration: 10,
             spawn_amount: 30,
             focus_player: false,
             spawn_time: 2,
@@ -69,7 +69,7 @@ class Progressor{
 
         //Segunda fase
         this.phases.push(new Phase({
-            duration: 15,
+            duration: 10,
             spawn_amount: 10,
             spawn_time: 0.1,
             counter: 0
@@ -103,7 +103,7 @@ class Progressor{
 
         //Cuarta fase
         this.phases.push(new Phase({
-            duration: 30,
+            duration: 10,
             spawn_amount: 1,
             spawn_time: 2,
             elapsed_time: 0,
