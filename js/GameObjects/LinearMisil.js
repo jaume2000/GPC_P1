@@ -14,6 +14,10 @@ export default class LinearMisil {
         this.center = new THREE.Object3D()
         this.material = new THREE.MeshBasicMaterial({color: 0xffffff, transparent: true, opacity:1})
         this.geometry = new THREE.Mesh(new THREE.BoxGeometry(50,50,50), this.material)
+        this.ship_collider = new THREE.Object3D()
+        this.ship_collider.translateX(ship_distance)
+
+        this.center.add(this.ship_collider)
         this.center.add(this.geometry)
         this.center.setRotationFromEuler(eulers)
         this.scene.add(this.center)
@@ -30,7 +34,8 @@ export default class LinearMisil {
         this.geometry.scale.y = (this.position/ship_distance)*10
         this.geometry.scale.z = (this.position/ship_distance)*10
         */
-
+            
+        //Ha llegado al límite, desespawnear.
         if(this.position > this.ship_distance + this.camera_distance){
             
             const indiceObjetoAEliminar = this.instanciables.indexOf(this);
@@ -52,6 +57,10 @@ export default class LinearMisil {
 
             if(this.position > this.ship_distance*0.75){
                 this.material.opacity = (this.ship_distance + this.camera_distance - this.position) / ( this.ship_distance*0.25 +this.camera_distance)
+            }
+
+            if(this.position >= this.ship_distance/2 && this.ship_collider.getWorldPosition(new THREE.Vector3()).distanceTo(this.ship.getWorldPosition(new THREE.Vector3())) < 25){
+                this.ship.gameOver()
             }
         }
     }

@@ -13,6 +13,7 @@ export default class RandomPlanet {
         this.instanciables = instanciables
         this.ship_distance = ship_distance
         this.camera_distance = camera_distance[0]
+        this.radio_planeta = radio_planeta
         
 
         //this.geometry = new THREE.Mesh(new THREE.SphereGeometry(50,50,planet_wires,planet_wires), new THREE.MeshBasicMaterial())
@@ -47,5 +48,9 @@ export default class RandomPlanet {
     update(delta){
 
         this.geometry.rotateY(delta)
+
+        if(this.planet.getWorldPosition(new THREE.Vector3()).distanceTo(this.ship.getWorldPosition(new THREE.Vector3())) < this.radio_planeta){
+            this.ship.gameOver()
+        }
     }
 }

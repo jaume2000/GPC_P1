@@ -15,6 +15,7 @@ import LinearMisil from './GameObjects/LinearMisil.js'
 import LaserSatelit from './GameObjects/LaserSatelit.js'
 import StaticLaser from './GameObjects/StaticLaser.js'
 import RandomPlanet from './GameObjects/RandomPlanet.js'
+import Progressor from './GameProgression/progressor.js'
 
 
 // Constantes de escena
@@ -37,6 +38,7 @@ let ship_max_velocity = 0.01
 let camera_distance = [800,20,0]
 
 let gameover = false
+let gameover_delta = 0.005
 
 
 // Variables de consenso. SIEMPRE necesarias
@@ -56,6 +58,7 @@ let linear_misil_velocity = 10000
 let linear_misil_interval_time = 0.2
 let static_laser_time = 0
 let static_laser_interval_time = 3
+let progressor;
 
 //Keyboard
 let keypress_W = false
@@ -84,6 +87,7 @@ function init(){
 
     //Escena
     scene = new THREE.Scene()
+    scene.radio_planeta = radio_planeta
     renderer.setClearColor(new THREE.Color(0,0,0.2))
 
     //Camara
@@ -91,12 +95,6 @@ function init(){
     camera.setRotationFromEuler(new THREE.Euler( ...ship_eulers, 'XYZ' ))
     camera.position.set(ship_distance + camera_distance[0], camera_distance[1] , camera_distance[2])
     camera.lookAt(0, 0, 0)
-
-    //Monitor
-
-    //stats = new Stats()
-    //stats.setMode(0)
-    //document.getElementById('container').appendChild(stats.domElement)
 
     //Eventos
     window.addEventListener('resize', updateAspectRatio)
@@ -146,38 +144,6 @@ function loadScene(){
     moon.add(moon_geometry)
     scene.add(moon)
 
-    //Línea de órbita de la luna
-    /*
-    let vertices = [];
-
-    for (let i = 0; i < orbit_wires; i++) {
-        const theta = (i / orbit_wires) * Math.PI * 2;
-        const x = Math.cos(theta) * ship_distance;
-        const z = Math.sin(theta) * ship_distance;
-        vertices.push(x, 0, z);
-    }
-    
-    vertices = new Float32Array(vertices);
-    
-    const geometry = new THREE.BufferGeometry();
-    geometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
-    
-    // Define los índices para formar triángulos que conecten los puntos de vértice en un patrón circular
-    const indices = [];
-    for (let i = 0; i < orbit_wires; i++) {
-        indices.push(i, (i + 1) % orbit_wires);
-    }
-    
-    geometry.setIndex(indices);
-    
-    const material = new THREE.LineBasicMaterial({ color: 0xff0000, transparent: true, opacity: 0.3 });
-    material.linewidth = 10;
-    const circle = new THREE.LineSegments(geometry, material);
-    
-    // Agregar la circunferencia a la escena
-    scene.add(circle);
-    */
-
     const orbit_material = new THREE.MeshBasicMaterial({ color: 0xff0000, transparent: true, opacity: 0.1 });
 
     const orbit = new THREE.Mesh(new THREE.TorusGeometry(ship_distance,10,10,100).rotateX(Math.PI/2), orbit_material)
@@ -187,25 +153,55 @@ function loadScene(){
     //Nave espacial
     ship = new THREE.Object3D()
     ship_end = new THREE.Object3D()
-    let ship_geometry = new THREE.Mesh(new THREE.BoxGeometry(20,20,20), default_material)
-    ship_end.add(ship_geometry)
-    ship_end.add(camera)
-    ship_end.translateX(ship_distance)
-    camera.position.set(camera_distance[0], camera_distance[1] , camera_distance[2])
+
     
-    ship.add(ship_end)
-    ship.setRotationFromEuler(new THREE.Euler( ...ship_eulers, 'XYZ' ))
-    ship_end.setRotationFromEuler(new THREE.Euler(ship_rotation,0,0))
+    var model_loader = new GLTFLoader();
+    model_loader.load('../models/spaceship/ufo.glb', function(gltf) {
+        console.log(gltf.scene)
+        let ship_geometry_rotator = new THREE.Object3D()
+        let ship_geometry = gltf.scene
+
+        ship_geometry.scale.set(30,30,30)
+        ship_geometry_rotator.add(ship_geometry)
+        ship_geometry_rotator.rotateZ(-Math.PI/4)
+        //scene.add(ship_geometry)
+        ship_end.geometry_rotator = ship_geometry_rotator
+        ship_end.geometry = ship_geometry
+
+        ship_end.add(ship_geometry_rotator)
+
+        ship_end.add(camera)
+        ship_end.translateX(ship_distance)
+        camera.position.set(camera_distance[0], camera_distance[1] , camera_distance[2])
+
+        console.log(gltf.scene.getWorldPosition(new THREE.Vector3()))
+        const ambient_light = new THREE.AmbientLight(new THREE.Color(1,1,1), 1)
+        
+        ship.add(ship_end)
+        ship.setRotationFromEuler(new THREE.Euler( ...ship_eulers, 'XYZ' ))
+        ship_end.setRotationFromEuler(new THREE.Euler(ship_rotation,0,0))
+
+        scene.add(ship)
+        scene.add(ambient_light)
+    });
+    
     ship_end.gameOver = gameOver
+    ship_end.ship_distance = ship_distance
+    ship_end.camera_distance = camera_distance
+
+    progressor = new Progressor(ship_end, scene)
+
+    
+
     
     //new LaserSatelit(ship, randEuler(), linear_misil_velocity, scene, instanciables, ship_distance, camera_distance, radio_planeta)
 
+    /*
     new RandomPlanet(ship_end, randEuler(), scene, instanciables, ship_distance, camera_distance, moon_radius)
     new RandomPlanet(ship_end, randEuler(), scene, instanciables, ship_distance, camera_distance, moon_radius)
     new RandomPlanet(ship_end, randEuler(), scene, instanciables, ship_distance, camera_distance, moon_radius)
     new RandomPlanet(ship_end, randEuler(), scene, instanciables, ship_distance, camera_distance, moon_radius)
-    scene.add(ship)
-    
+    */    
 
 
 }
@@ -253,20 +249,22 @@ function keyRelased(event){
 
 
 function update(){
-    
-    if(gameover){
-        score.style.color = "red"
-        return;
-    }
 
     let delta = clock.getDelta()
     
+    if(gameover){
+        score.style.color = "red"
+        delta = delta*gameover_delta
+    }
 
-    if (keypress_W){
+
+
+    if (keypress_W && !gameover){
         ship_euler_velocity[1] = Math.min(Math.max((ship_euler_velocity[1] + Math.cos(ship_rotation)*ship_acceleration/ship_distance*delta), -ship_max_velocity), ship_max_velocity)
         ship_euler_velocity[0] = Math.min(Math.max((ship_euler_velocity[0] -Math.sin(ship_rotation)*ship_acceleration/ship_distance*delta), -ship_max_velocity), ship_max_velocity)
+        //ship_end.geometry_rotator.rotation.z = -Math.PI/5
     }
-    if (keypress_S){
+    if (keypress_S && !gameover){
         ship_euler_velocity[1] -= 0.8*ship_euler_velocity[1]*delta
         ship_euler_velocity[0] -= 0.8*ship_euler_velocity[0]*delta
 
@@ -275,22 +273,28 @@ function update(){
             ship_euler_velocity[1] = 0
         }
     }
-    if (keypress_A){
+    if (keypress_A && !gameover){
         ship_rotation+=1*delta
     }
-    if (keypress_D){
+    if (keypress_D && !gameover){
         ship_rotation-=1*delta
     }
+
+
+
     ship.rotateZ(ship_euler_velocity[1])
     ship.rotateY(ship_euler_velocity[0])
     moon.rotateY(moon_angular_velocity*delta)
     moon_geometry.rotateY(moon_rotation_velocity*delta)
     planet.rotateY(earth_rotation*delta)
     ship_end.setRotationFromEuler(new THREE.Euler(ship_rotation,0,0))
+    ship_end.geometry?.rotateY(Math.PI/2 * delta)
 
-    instanciables.forEach(i=>i.update(delta))
+    //instanciables.forEach(i=>i.update(delta))
+    //progressor.update(delta)
 
 
+    /*
     linear_misil_time+= delta
     static_laser_time+= delta
     if(linear_misil_time>linear_misil_interval_time){
@@ -331,10 +335,11 @@ function update(){
         static_laser_time=0
     }
 
+    */
 
-
-
-    score.innerText = Math.round(clock.elapsedTime)
+    if(!gameover){
+        score.innerText = Math.round(clock.elapsedTime)
+    }
 }
 
 function render(){
@@ -348,13 +353,13 @@ function render(){
 }
 
 function gameOver(){
+    if (gameover){return;}
+
     gameover = true
     document.getElementById("gameover_screen").style.display = "flex"
+    document.getElementById("gameover_score").innerText = score.innerText
+    document.getElementById("score").style.display = "none"
+    document.getElementById("container").style.filter = "saturate(0)"
+    ship_euler_velocity[0] *= gameover_delta
+    ship_euler_velocity[1] *= gameover_delta
 }
-
-function randEuler(){
-    return new THREE.Euler(Math.random()*Math.PI*2,Math.random()*Math.PI*2,Math.random()*Math.PI*2)
-}
-
-// Videogame objects
-

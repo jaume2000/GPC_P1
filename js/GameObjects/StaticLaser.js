@@ -55,7 +55,7 @@ export default class StaticLaser {
         else if (this.alive < StaticLaser.third_phase_time){
             //Activate laser
             this.laser_material.opacity = 1
-            if(this.ship_collision_point.getWorldPosition(new THREE.Vector3()).distanceTo(this.ship.getWorldPosition(new THREE.Vector3())) < 350){
+            if(this.ship_collision_point.getWorldPosition(new THREE.Vector3()).distanceTo(this.ship.getWorldPosition(new THREE.Vector3())) < 400){
                 this.ship.gameOver()
             }
         }
