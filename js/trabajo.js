@@ -290,69 +290,70 @@ function update(){
     }
 
     //Animaciones con TWEEN
-    if(!gameover && !keypress_A_before && keypress_A){
-        new TWEEN.Tween(ship_end.geometry_rotator.rotation)
-        .to({
-            x: Math.PI/8
-        }, 200)
-        .interpolation( TWEEN.Interpolation.Linear)
-        .easing(TWEEN.Easing.Quadratic.Out)
-        .start()
+    if(ship_end.geometry_rotator != undefined){
+        if(!gameover && !keypress_A_before && keypress_A){
+            new TWEEN.Tween(ship_end.geometry_rotator.rotation)
+            .to({
+                x: Math.PI/8
+            }, 200)
+            .interpolation( TWEEN.Interpolation.Linear)
+            .easing(TWEEN.Easing.Quadratic.Out)
+            .start()
+        }
+        if(!gameover && !keypress_D_before && keypress_D){
+
+            new TWEEN.Tween(ship_end.geometry_rotator.rotation)
+            .to({
+                x: -Math.PI/8
+            }, 200)
+            .interpolation( TWEEN.Interpolation.Linear)
+            .easing(TWEEN.Easing.Quadratic.Out)
+            .start()
+        }
+
+        if(!gameover && (keypress_A_before || keypress_D_before) && (!keypress_A && !keypress_D)) {
+            new TWEEN.Tween(ship_end.geometry_rotator.rotation)
+            .to({
+                x: 0
+            }, 200)
+            .interpolation( TWEEN.Interpolation.Linear)
+            .easing(TWEEN.Easing.Quadratic.Out)
+            .start()
+        }
+
+
+
+        if(!gameover && !keypress_W_before && keypress_W){
+
+            new TWEEN.Tween(ship_end.geometry_rotator.rotation)
+            .to({
+                z: Math.PI/8
+            }, 200)
+            .interpolation( TWEEN.Interpolation.Linear)
+            .easing(TWEEN.Easing.Quadratic.Out)
+            .start()
+        }
+        if(!gameover && !keypress_S_before && keypress_S){
+
+            new TWEEN.Tween(ship_end.geometry_rotator.rotation)
+            .to({
+                z: -Math.PI/4
+            }, 200)
+            .interpolation( TWEEN.Interpolation.Linear)
+            .easing(TWEEN.Easing.Quadratic.Out)
+            .start()
+        }
+
+        if(!gameover && (keypress_W_before || keypress_S_before) && (!keypress_W && !keypress_S)) {
+            new TWEEN.Tween(ship_end.geometry_rotator.rotation)
+            .to({
+                z: -Math.PI/8
+            }, 200)
+            .interpolation( TWEEN.Interpolation.Linear)
+            .easing(TWEEN.Easing.Quadratic.Out)
+            .start()
+        }
     }
-    if(!gameover && !keypress_D_before && keypress_D){
-
-        new TWEEN.Tween(ship_end.geometry_rotator.rotation)
-        .to({
-            x: -Math.PI/8
-        }, 200)
-        .interpolation( TWEEN.Interpolation.Linear)
-        .easing(TWEEN.Easing.Quadratic.Out)
-        .start()
-    }
-
-    if(!gameover && (keypress_A_before || keypress_D_before) && (!keypress_A && !keypress_D)) {
-        new TWEEN.Tween(ship_end.geometry_rotator.rotation)
-        .to({
-            x: 0
-        }, 200)
-        .interpolation( TWEEN.Interpolation.Linear)
-        .easing(TWEEN.Easing.Quadratic.Out)
-        .start()
-    }
-
-
-
-    if(!gameover && !keypress_W_before && keypress_W){
-
-        new TWEEN.Tween(ship_end.geometry_rotator.rotation)
-        .to({
-            z: Math.PI/8
-        }, 200)
-        .interpolation( TWEEN.Interpolation.Linear)
-        .easing(TWEEN.Easing.Quadratic.Out)
-        .start()
-    }
-    if(!gameover && !keypress_S_before && keypress_S){
-
-        new TWEEN.Tween(ship_end.geometry_rotator.rotation)
-        .to({
-            z: -Math.PI/4
-        }, 200)
-        .interpolation( TWEEN.Interpolation.Linear)
-        .easing(TWEEN.Easing.Quadratic.Out)
-        .start()
-    }
-
-    if(!gameover && (keypress_W_before || keypress_S_before) && (!keypress_W && !keypress_S)) {
-        new TWEEN.Tween(ship_end.geometry_rotator.rotation)
-        .to({
-            z: -Math.PI/8
-        }, 200)
-        .interpolation( TWEEN.Interpolation.Linear)
-        .easing(TWEEN.Easing.Quadratic.Out)
-        .start()
-    }
-
 
 
     ship.rotateZ(ship_euler_velocity[1])
